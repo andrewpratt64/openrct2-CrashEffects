@@ -139,7 +139,6 @@ function getSurfaceElemAt(x, y)
 //	strength (float): Strength of damage, where 0 is no damage and 1 is very damaged
 function convertSurfaceElementToRubble(surfElem, strength)
 {
-	console.log("Strength: " + strength);
 	// Max value of strength for damage to be considered minor
 	const DMG_MINOR = 0.334;
 	// Max value of strength for damage to NOT be considered major
@@ -273,8 +272,6 @@ function onTick(e, g)
 // Called on plugin start
 function init()
 {
-	easyMsg("Loaded");
-		
 	context.subscribe("interval.tick", onTick);
 }
 
@@ -302,7 +299,7 @@ function main()
 registerPlugin({
     name:		"Crash Effects",
     version:	"1.0",
-    licence:	"N/A",
+    licence:	"https://github.com/andrewpratt64/openrct2-CrashEffects/blob/main/LICENSE.txt",
     authors:	["Andrew Pratt"],
     type:		"remote",
     main:		main
