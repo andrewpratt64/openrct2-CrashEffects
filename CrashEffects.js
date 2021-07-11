@@ -1,8 +1,17 @@
 // Andrew Pratt 2021
 
 
-const PI2 = Math.PI * 2;
+//	== CONSTANTS ==
 
+// Pi * 2
+const PI2 = Math.PI * 2;
+// Max value of strength for damage to be considered minor
+const DMG_MINOR = 0.334;
+// Max value of strength for damage to NOT be considered major
+const DMG_MEDIUM = 0.667;
+
+
+	
 
 // Enum for all different surface styles
 const ESURFACE_STYLES = {
@@ -33,7 +42,7 @@ var handledCrashes = [];
 
 // Displays a message to the user via an in-game "award"
 //	msg (string): Message to display
-function easyMsg(msg)
+var easyMsg = function(msg)
 {
 	park.postMessage({
 		type: "award",
@@ -43,7 +52,7 @@ function easyMsg(msg)
 
 
 // Returns the distance squared between 3D points a and b
-function vec3DistSqr(a, b)
+var vec3DistSqr = function(a, b)
 {
 	var dx = b.x - a.x;
 	var dy = b.y - a.y;
@@ -55,7 +64,7 @@ function vec3DistSqr(a, b)
 
 // Returns the distance between 3D points a and b
 //	Slower than vec3DistSqr
-function vec3Dist(a, b)
+var vec3Dist = function(a, b)
 {
 	return Math.sqrt(vec3DistSqr(a, b));
 }
@@ -63,7 +72,7 @@ function vec3Dist(a, b)
 
 // Gets a 3-component vector from an entities position
 //	ent: Entity to get position from
-function getEntPosAsVec3(ent)
+var getEntPosAsVec3 = function(ent)
 {
 	return {
 		x: ent.x,
@@ -74,7 +83,7 @@ function getEntPosAsVec3(ent)
 
 // Converts coords to tile coords
 //	pos (vec3 obj): Position to convert to tile coords
-function toTileCoords(pos)
+var toTileCoords = function(pos)
 {
 	return {
 		// For any real number n, n/32 = n*0.03125
@@ -86,7 +95,7 @@ function toTileCoords(pos)
 
 // Converts tile coords to normal (or whatever you call it) coords
 //	pos (vec3 obj): Position in tile coords to convert
-function fromTileCoords(pos)
+var fromTileCoords = function(pos)
 {
 	return {
 		x: pos.x * 32,
@@ -100,18 +109,29 @@ function fromTileCoords(pos)
 //	obj (object): Object to test and possibly insert into
 //	key (any): Key to test. If key dosen't exist inside obj, a value will be inserted at obj[key]
 //	defaultVal: Value to insert if key dosen't exist in obj
-function emplace(obj, key, defaultVal)
+var emplace = function(obj, key, defaultVal)
 {
 	if (!obj.hasOwnProperty(key))
 		obj.set(key, defaultVal);
 	return obj[key];
 }
 
+// Create an entry in a Configuration object (ex. context.sharedStorage) if it dosen't already exist
+//	obj (Configuration object): Object to test and possibly insert into
+//	key (any): Key to test, including namespace. If key dosen't exist inside obj, a value will be inserted at obj[key]
+//	defaultVal: Value to insert if key dosen't exist in obj
+var configurationEmplace = function(obj, key, defaultVal)
+{
+	if (!obj.has(key))
+		obj.set(key, defaultVal);
+	return obj.get(key);
+}
+
 
 // Gets the top SurfaceElement at the given x and y tile coords
 //	x (number): X Coord
 //	y (number): Y Coord
-function getSurfaceElemAt(x, y)
+var getSurfaceElemAt = function(x, y)
 {
 	// Bail if given coords aren't inside the map
 	if (x < 0 || x > map.size.x || y < 0 || y > map.size.y)
@@ -137,13 +157,8 @@ function getSurfaceElemAt(x, y)
 // Turns a given SurfaceElement into rubble
 //	surfElem (SurfaceElement object): Surface element to affect
 //	strength (float): Strength of damage, where 0 is no damage and 1 is very damaged
-function convertSurfaceElementToRubble(surfElem, strength)
+var convertSurfaceElementToRubble = function(surfElem, strength)
 {
-	// Max value of strength for damage to be considered minor
-	const DMG_MINOR = 0.334;
-	// Max value of strength for damage to NOT be considered major
-	const DMG_MEDIUM = 0.667;
-	
 	// Bail if no damage
 	if (strength <= 0)
 		return;
@@ -174,10 +189,35 @@ function convertSurfaceElementToRubble(surfElem, strength)
 }
 
 
+// Damages a given footpath
+//	tile (Tile object): Tile containing footpath
+//	elemIndex (int): Index of footpath to damage in tile
+//	strength (float): Strength of damage, where 0 is no damage and 1 is very damaged
+var breakFootpath = function(tile, elemIndex, strength)
+{
+	// Bail if no damage
+	if (strength <= 0)
+		return;
+	
+	// Get footpath element
+	var elem = tile.getElement(elemIndex);
+	
+	// Both minor and medium damage break path additions
+	if (strength <= DMG_MEDIUM)
+	{
+		if (!elem.isQueue && elem.addition != null)
+			elem.isAdditionBroken = true;
+	}
+	// Major damage destroys footpath entirely
+	else
+		tile.removeElement(elemIndex);
+}
+
+
 // Creates rubble at a given position
 //	pos (vec3 object): Position to create rubble at. Should be an object with keys "x", "y", and "z"
 //	affectRadius (number): Distance from pos to create rubble at
-function createRubbleAt(pos, affectRadius)
+var createRubbleAt = function(pos, affectRadius)
 {
 	// Iterate over every map tile within the affect radius
 	for (var r = 0; r < affectRadius; ++r)
@@ -194,23 +234,50 @@ function createRubbleAt(pos, affectRadius)
 				z: pos.z
 			};
 			
-			// Get the surface element of the current tile
-			var surfElem = getSurfaceElemAt(tilePos.x, tilePos.y);
+			// Skip this tile if it's coords aren't inside the map
+			if (tilePos.x < 0 || tilePos.x > map.size.x || tilePos.y < 0 || tilePos.y > map.size.y)
+				continue;
 			
-			// Get the distance from pos to the tile
-			var dist = vec3Dist(
-				{
-					x: tilePos.x,
-					y: tilePos.y,
-					z: surfElem.baseHeight * 0.25
-				},
-				pos
-			);
+			// Get the tile at the coords
+			var tile = map.getTile(tilePos.x, tilePos.y);
 			
-			// Turn the surface to rubble if it exists and is within the affect radius
-			if (surfElem != null && dist <= affectRadius)
+			// Iterate over all elements at the tile
+			for (var i = 0; i < tile.numElements; ++i)
 			{
-				convertSurfaceElementToRubble(surfElem, 1 - (dist / affectRadius));
+				// Get the next element in the tile
+				var elem = tile.getElement(i);
+				
+				// Get the distance from pos to the element
+				var dist = vec3Dist(
+					{
+						x: tilePos.x,
+						y: tilePos.y,
+						z: elem.baseHeight * 0.25
+					},
+					pos
+				);
+				
+				// Skip this element if it's not within the affect radius
+				if (dist > affectRadius)
+					continue;
+				
+				// Calculate the damage strength to apply to this element
+				var dmgStrength = 1 - (dist / affectRadius);
+				
+				// Damage the element, based on it's type
+				switch (elem.type)
+				{
+					// Terrain Surface
+					case "surface":
+						// Turn the surface to rubble
+						convertSurfaceElementToRubble(elem, dmgStrength);
+						break;
+					
+					// Footpath
+					case "footpath":
+						breakFootpath(tile, i, dmgStrength);
+						break;
+				}
 			}
 		}
 	}
@@ -218,7 +285,7 @@ function createRubbleAt(pos, affectRadius)
 
 
 // Called on every game tick
-function onTick(e, g)
+var onTick = function(e, g)
 {
 	//var mem = context.sharedStorage;
 	
@@ -270,13 +337,14 @@ function onTick(e, g)
 
 
 // Called on plugin start
-function init()
+var init = function()
 {
+	// Context subscribe(s)
 	context.subscribe("interval.tick", onTick);
 }
 
 
-function main()
+var main = function()
 {
 	const USE_TRYCATCH = false;
 	
