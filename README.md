@@ -5,7 +5,9 @@ A plugin for OpenRCT2 that adds enhanced destruction effects to your park
 
 
 ### Current Features:
-Causes coaster cars to change the surface material of the ground when they explode
+* Causes coaster cars to change the surface material of the ground when they explode
+* Footpaths can be destroyed in explosions
+* Footpath elements can be damaged and destroyed in explosions
 
 ### Planned Features:
 * Creation of rubble scenery items
