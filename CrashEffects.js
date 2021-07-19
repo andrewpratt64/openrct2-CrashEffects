@@ -31,12 +31,300 @@ const ESURFACE_STYLES = {
 	SAND_BROWN: 13
 };
 
-// Collection of key-value pairs for crashed vehicle cars already handled by this plugin
+// Enum for all track types
+// See namespace TrackElemType in: https://github.com/OpenRCT2/OpenRCT2/blob/develop/src/openrct2/ride/Track.h
+const ETRACK_TYPES = {
+	Flat: 0,
+	EndStation: 1,
+	BeginStation: 2,
+	MiddleStation: 3,
+	Up25: 4,
+	Up60: 5,
+	FlatToUp25: 6,
+	Up25ToUp60: 7,
+	Up60ToUp25: 8,
+	Up25ToFlat: 9,
+	Down25: 10,
+	Down60: 11,
+	FlatToDown25: 12,
+	Down25ToDown60: 13,
+	Down60ToDown25: 14,
+	Down25ToFlat: 15,
+	LeftQuarterTurn5Tiles: 16,
+	RightQuarterTurn5Tiles: 17,
+	FlatToLeftBank: 18,
+	FlatToRightBank: 19,
+	LeftBankToFlat: 20,
+	RightBankToFlat: 21,
+	BankedLeftQuarterTurn5Tiles: 22,
+	BankedRightQuarterTurn5Tiles: 23,
+	LeftBankToUp25: 24,
+	RightBankToUp25: 25,
+	Up25ToLeftBank: 26,
+	Up25ToRightBank: 27,
+	LeftBankToDown25: 28,
+	RightBankToDown25: 29,
+	Down25ToLeftBank: 30,
+	Down25ToRightBank: 31,
+	LeftBank: 32,
+	RightBank: 33,
+	LeftQuarterTurn5TilesUp25: 34,
+	RightQuarterTurn5TilesUp25: 35,
+	LeftQuarterTurn5TilesDown25: 36,
+	RightQuarterTurn5TilesDown25: 37,
+	SBendLeft: 38,
+	SBendRight: 39,
+	LeftVerticalLoop: 40,
+	RightVerticalLoop: 41,
+	LeftQuarterTurn3Tiles: 42,
+	RightQuarterTurn3Tiles: 43,
+	LeftBankedQuarterTurn3Tiles: 44,
+	RightBankedQuarterTurn3Tiles: 45,
+	LeftQuarterTurn3TilesUp25: 46,
+	RightQuarterTurn3TilesUp25: 47,
+	LeftQuarterTurn3TilesDown25: 48,
+	RightQuarterTurn3TilesDown25: 49,
+	LeftQuarterTurn1Tile: 50,
+	RightQuarterTurn1Tile: 51,
+	LeftTwistDownToUp: 52,
+	RightTwistDownToUp: 53,
+	LeftTwistUpToDown: 54,
+	RightTwistUpToDown: 55,
+	HalfLoopUp: 56,
+	HalfLoopDown: 57,
+	LeftCorkscrewUp: 58,
+	RightCorkscrewUp: 59,
+	LeftCorkscrewDown: 60,
+	RightCorkscrewDown: 61,
+	FlatToUp60: 62,
+	Up60ToFlat: 63,
+	FlatToDown60: 64,
+	Down60ToFlat: 65,
+	TowerBase: 66,
+	TowerSection: 67,
+	FlatCovered: 68,
+	Up25Covered: 69,
+	Up60Covered: 70,
+	FlatToUp25Covered: 71,
+	Up25ToUp60Covered: 72,
+	Up60ToUp25Covered: 73,
+	Up25ToFlatCovered: 74,
+	Down25Covered: 75,
+	Down60Covered: 76,
+	FlatToDown25Covered: 77,
+	Down25ToDown60Covered: 78,
+	Down60ToDown25Covered: 79,
+	Down25ToFlatCovered: 80,
+	LeftQuarterTurn5TilesCovered: 81,
+	RightQuarterTurn5TilesCovered: 82,
+	SBendLeftCovered: 83,
+	SBendRightCovered: 84,
+	LeftQuarterTurn3TilesCovered: 85,
+	RightQuarterTurn3TilesCovered: 86,
+	LeftHalfBankedHelixUpSmall: 87,
+	RightHalfBankedHelixUpSmall: 88,
+	LeftHalfBankedHelixDownSmall: 89,
+	RightHalfBankedHelixDownSmall: 90,
+	LeftHalfBankedHelixUpLarge: 91,
+	RightHalfBankedHelixUpLarge: 92,
+	LeftHalfBankedHelixDownLarge: 93,
+	RightHalfBankedHelixDownLarge: 94,
+	LeftQuarterTurn1TileUp60: 95,
+	RightQuarterTurn1TileUp60: 96,
+	LeftQuarterTurn1TileDown60: 97,
+	RightQuarterTurn1TileDown60: 98,
+	Brakes: 99,
+	RotationControlToggleAlias: 100,
+	Booster: 100,
+	Maze: 101,
+	// Used by the multi-dimension coaster, as TD6 cannot handle index 255.
+	InvertedUp90ToFlatQuarterLoopAlias: 101,
+	LeftQuarterBankedHelixLargeUp: 102,
+	RightQuarterBankedHelixLargeUp: 103,
+	LeftQuarterBankedHelixLargeDown: 104,
+	RightQuarterBankedHelixLargeDown: 105,
+	LeftQuarterHelixLargeUp: 106,
+	RightQuarterHelixLargeUp: 107,
+	LeftQuarterHelixLargeDown: 108,
+	RightQuarterHelixLargeDown: 109,
+	Up25LeftBanked: 110,
+	Up25RightBanked: 111,
+	Waterfall: 112,
+	Rapids: 113,
+	OnRidePhoto: 114,
+	Down25LeftBanked: 115,
+	Down25RightBanked: 116,
+	Watersplash: 117,
+	FlatToUp60LongBase: 118,
+	Up60ToFlatLongBase: 119,
+	Whirlpool: 120,
+	Down60ToFlatLongBase: 121,
+	FlatToDown60LongBase: 122,
+	CableLiftHill: 123,
+	ReverseFreefallSlope: 124,
+	ReverseFreefallVertical: 125,
+	Up90: 126,
+	Down90: 127,
+	Up60ToUp90: 128,
+	Down90ToDown60: 129,
+	Up90ToUp60: 130,
+	Down60ToDown90: 131,
+	BrakeForDrop: 132,
+	LeftEighthToDiag: 133,
+	RightEighthToDiag: 134,
+	LeftEighthToOrthogonal: 135,
+	RightEighthToOrthogonal: 136,
+	LeftEighthBankToDiag: 137,
+	RightEighthBankToDiag: 138,
+	LeftEighthBankToOrthogonal: 139,
+	RightEighthBankToOrthogonal: 140,
+	DiagFlat: 141,
+	DiagUp25: 142,
+	DiagUp60: 143,
+	DiagFlatToUp25: 144,
+	DiagUp25ToUp60: 145,
+	DiagUp60ToUp25: 146,
+	DiagUp25ToFlat: 147,
+	DiagDown25: 148,
+	DiagDown60: 149,
+	DiagFlatToDown25: 150,
+	DiagDown25ToDown60: 151,
+	DiagDown60ToDown25: 152,
+	DiagDown25ToFlat: 153,
+	DiagFlatToUp60: 154,
+	DiagUp60ToFlat: 155,
+	DiagFlatToDown60: 156,
+	DiagDown60ToFlat: 157,
+	DiagFlatToLeftBank: 158,
+	DiagFlatToRightBank: 159,
+	DiagLeftBankToFlat: 160,
+	DiagRightBankToFlat: 161,
+	DiagLeftBankToUp25: 162,
+	DiagRightBankToUp25: 163,
+	DiagUp25ToLeftBank: 164,
+	DiagUp25ToRightBank: 165,
+	DiagLeftBankToDown25: 166,
+	DiagRightBankToDown25: 167,
+	DiagDown25ToLeftBank: 168,
+	DiagDown25ToRightBank: 169,
+	DiagLeftBank: 170,
+	DiagRightBank: 171,
+	LogFlumeReverser: 172,
+	SpinningTunnel: 173,
+	LeftBarrelRollUpToDown: 174,
+	RightBarrelRollUpToDown: 175,
+	LeftBarrelRollDownToUp: 176,
+	RightBarrelRollDownToUp: 177,
+	LeftBankToLeftQuarterTurn3TilesUp25: 178,
+	RightBankToRightQuarterTurn3TilesUp25: 179,
+	LeftQuarterTurn3TilesDown25ToLeftBank: 180,
+	RightQuarterTurn3TilesDown25ToRightBank: 181,
+	PoweredLift: 182,
+	LeftLargeHalfLoopUp: 183,
+	RightLargeHalfLoopUp: 184,
+	RightLargeHalfLoopDown: 185,
+	LeftLargeHalfLoopDown: 186,
+	LeftFlyerTwistUp: 187,
+	RightFlyerTwistUp: 188,
+	LeftFlyerTwistDown: 189,
+	RightFlyerTwistDown: 190,
+	FlyerHalfLoopUp: 191,
+	FlyerHalfLoopDown: 192,
+	LeftFlyerCorkscrewUp: 193,
+	RightFlyerCorkscrewUp: 194,
+	LeftFlyerCorkscrewDown: 195,
+	RightFlyerCorkscrewDown: 196,
+	HeartLineTransferUp: 197,
+	HeartLineTransferDown: 198,
+	LeftHeartLineRoll: 199,
+	RightHeartLineRoll: 200,
+	MinigolfHoleA: 201,
+	MinigolfHoleB: 202,
+	MinigolfHoleC: 203,
+	MinigolfHoleD: 204,
+	MinigolfHoleE: 205,
+	MultiDimInvertedFlatToDown90QuarterLoop: 206,
+	Up90ToInvertedFlatQuarterLoop: 207,
+	InvertedFlatToDown90QuarterLoop: 208,
+	LeftCurvedLiftHill: 209,
+	RightCurvedLiftHill: 210,
+	LeftReverser: 211,
+	RightReverser: 212,
+	AirThrustTopCap: 213,
+	AirThrustVerticalDown: 214,
+	AirThrustVerticalDownToLevel: 215,
+	BlockBrakes: 216,
+	LeftBankedQuarterTurn3TileUp25: 217,
+	RightBankedQuarterTurn3TileUp25: 218,
+	LeftBankedQuarterTurn3TileDown25: 219,
+	RightBankedQuarterTurn3TileDown25: 220,
+	LeftBankedQuarterTurn5TileUp25: 221,
+	RightBankedQuarterTurn5TileUp25: 222,
+	LeftBankedQuarterTurn5TileDown25: 223,
+	RightBankedQuarterTurn5TileDown25: 224,
+	Up25ToLeftBankedUp25: 225,
+	Up25ToRightBankedUp25: 226,
+	LeftBankedUp25ToUp25: 227,
+	RightBankedUp25ToUp25: 228,
+	Down25ToLeftBankedDown25: 229,
+	Down25ToRightBankedDown25: 230,
+	LeftBankedDown25ToDown25: 231,
+	RightBankedDown25ToDown25: 232,
+	LeftBankedFlatToLeftBankedUp25: 233,
+	RightBankedFlatToRightBankedUp25: 234,
+	LeftBankedUp25ToLeftBankedFlat: 235,
+	RightBankedUp25ToRightBankedFlat: 236,
+	LeftBankedFlatToLeftBankedDown25: 237,
+	RightBankedFlatToRightBankedDown25: 238,
+	LeftBankedDown25ToLeftBankedFlat: 239,
+	RightBankedDown25ToRightBankedFlat: 240,
+	FlatToLeftBankedUp25: 241,
+	FlatToRightBankedUp25: 242,
+	LeftBankedUp25ToFlat: 243,
+	RightBankedUp25ToFlat: 244,
+	FlatToLeftBankedDown25: 245,
+	FlatToRightBankedDown25: 246,
+	LeftBankedDown25ToFlat: 247,
+	RightBankedDown25ToFlat: 248,
+	LeftQuarterTurn1TileUp90: 249,
+	RightQuarterTurn1TileUp90: 250,
+	LeftQuarterTurn1TileDown90: 251,
+	RightQuarterTurn1TileDown90: 252,
+	MultiDimUp90ToInvertedFlatQuarterLoop: 253,
+	MultiDimFlatToDown90QuarterLoop: 254,
+	MultiDimInvertedUp90ToFlatQuarterLoop: 255,
+	RotationControlToggle: 256,
+	FlatTrack1x4A: 257,
+	FlatTrack2x2: 258,
+	FlatTrack4x4: 259,
+	FlatTrack2x4: 260,
+	FlatTrack1x5: 261,
+	FlatTrack1x1A: 262,
+	FlatTrack1x4B: 263,
+	FlatTrack1x1B: 264,
+	FlatTrack1x4C: 265,
+	FlatTrack3x3: 266,
+	Count: 267,
+	None: 65535,
+	FlatTrack1x4A_Alias: 95,
+	FlatTrack2x2_Alias: 110,
+	FlatTrack4x4_Alias: 111,
+	FlatTrack2x4_Alias: 115,
+	FlatTrack1x5_Alias: 116,
+	FlatTrack1x1A_Alias: 118,
+	FlatTrack1x4B_Alias: 119,
+	FlatTrack1x1B_Alias: 121,
+	FlatTrack1x4C_Alias: 122,
+	FlatTrack3x3_Alias: 123
+};
+
+
+// Collection of key-value pairs for vehicle cars known, and possibly handled by this plugin if crashed
 // Key is entity id
-// Value is boolean; true if vehicle has crashed and exploded, false if still crashing
+// Value is boolean; true if vehicle has crashed and exploded, false otherwise
 // Implemented as an array of "pairs" (which are just arrays with two entries,
 //	where [0] is key and [1] is value) since ES5 dosen't support Map type :(
-var handledCrashes = [];
+var knownCars = [];
 
 
 
@@ -128,6 +416,81 @@ var configurationEmplace = function(obj, key, defaultVal)
 }
 
 
+// Returns true if a given track type occupies a 1x1 tile, false otherwise
+// NOTE: The waterfall track type returns true since it's close enough to being 1x1
+//	trackType (ETRACK_TYPES): The track type to test
+var trackTypeIs1x1 = function(trackType)
+{
+	return trackType >= 0
+	&& trackType < ETRACK_TYPES.Count
+	&& (
+		trackType <= ETRACK_TYPES.Down25ToFlat
+		|| (
+			trackType >= ETRACK_TYPES.FlatToLeftBank
+			&& trackType <= ETRACK_TYPES.RightBankToFlat
+		)
+		|| (
+			trackType >= ETRACK_TYPES.LeftBankToUp25
+			&& trackType <= ETRACK_TYPES.RightBank
+		)
+		|| (
+			trackType >= ETRACK_TYPES.LeftQuarterTurn1Tile
+			&& trackType <= ETRACK_TYPES.RightQuarterTurn1Tile
+		)
+		|| (
+			trackType >= ETRACK_TYPES.FlatToUp60
+			&& trackType <= ETRACK_TYPES.Down60ToFlat
+		)
+		|| (
+			trackType >= ETRACK_TYPES.LeftQuarterTurn1TileUp60
+			&& trackType <= ETRACK_TYPES.Maze
+		)
+		|| (
+			trackType >= ETRACK_TYPES.Up25LeftBanked
+			&& trackType <= ETRACK_TYPES.Down25RightBanked
+		)
+		|| (
+			trackType >= ETRACK_TYPES.FlatToUp60LongBase
+			&& trackType <= ETRACK_TYPES.FlatToDown60LongBase
+		)
+		|| (
+			trackType >= ETRACK_TYPES.Up90
+			&& trackType <= ETRACK_TYPES.BrakeForDrop
+		)
+		|| (
+			trackType >= ETRACK_TYPES.LogFlumeReverser
+			&& trackType <= ETRACK_TYPES.SpinningTunnel
+		)
+		|| (
+			trackType >= ETRACK_TYPES.Up25ToLeftBankedUp25
+			&& trackType <= ETRACK_TYPES.RightQuarterTurn1TileDown90
+		)
+		|| (
+			trackType >= ETRACK_TYPES.Up25ToLeftBankedUp25
+			&& trackType <= ETRACK_TYPES.RightQuarterTurn1TileDown90
+		)
+		|| trackType == ETRACK_TYPES.RotationControlToggle
+		|| trackType == ETRACK_TYPES.FlatTrack1x1A
+		|| trackType == ETRACK_TYPES.FlatTrack1x1B
+		|| trackType == ETRACK_TYPES.FlatTrack1x1A_Alias
+		|| trackType == ETRACK_TYPES.FlatTrack1x1B_Alias
+	);
+}
+
+
+// Returns true if a given track element occupies a 1x1 tile, false otherwise
+//	elem (obj): The track element to test
+var trackElemIs1x1 = function(elem)
+{
+	// If the track element has a non-zero value for it's sequence,
+	// it's definetly bigger than 1x1
+	if (elem.sequence != 0) return false;
+	
+	// If sequence is zero, return a value based on it's numerical type
+	return trackTypeIs1x1(elem.trackType);
+}
+
+
 // Gets the top SurfaceElement at the given x and y tile coords
 //	x (number): X Coord
 //	y (number): Y Coord
@@ -214,6 +577,87 @@ var breakFootpath = function(tile, elemIndex, strength)
 }
 
 
+// Damages a given small scenery element
+//	tile (Tile object): Tile containing scenery
+//	elemIndex (int): Index of scenery element to damage in tile
+//	strength (float): Strength of damage, where 0 is no damage and 1 is very damaged
+var breakSmallScenery = function(tile, elemIndex, strength)
+{
+	// Bail if no damage
+	if (strength <= 0)
+		return;
+	
+	// Get scenery element
+	var elem = tile.getElement(elemIndex);
+	
+	// Small scenery that takes up a full tile's width isn't destroyed by minor damage,
+	// everything else is
+	if (elem.quadrant != 0 || strength > DMG_MINOR)
+		tile.removeElement(elemIndex);
+}
+
+
+// Damages a given large scenery element
+//	tile (Tile object): Tile containing scenery
+//	elemIndex (int): Index of scenery element to damage in tile
+//	strength (float): Strength of damage, where 0 is no damage and 1 is very damaged
+var breakLargeScenery = function(tile, elemIndex, strength)
+{
+	throw "NOT IMPLEMENTED";
+	
+	// Bail if no damage
+	if (strength <= 0)
+		return;
+	
+	// Get scenery element
+	var elem = tile.getElement(elemIndex);
+	
+	// Both minor and medium damage break large scenery
+	if (strength <= DMG_MEDIUM)
+	{
+		
+	}
+	// Major damage destroys large scenery entirely
+	else
+		tile.removeElement(elemIndex);
+}
+
+
+// Damages a given track element
+//	tile (Tile object): Tile containing track
+//	elemIndex (int): Index of track element to damage in tile
+//	strength (float): Strength of damage, where 0 is no damage and 1 is very damaged
+var breakTrack = function(tile, elemIndex, strength)
+{
+	// Get track element
+	var elem = tile.getElement(elemIndex);
+	
+	// Don't delete parts of flat rides, it looks weird
+	if (elem.trackType == TRACK_TYPE_FLAT_RIDE)
+		return;
+	
+	// Major damage destroys 1x1 track pieces
+	if (strength > DMG_MEDIUM && trackElemIs1x1(elem))
+		tile.removeElement(elemIndex);
+}
+
+
+// Damages a given wall element
+//	tile (Tile object): Tile containing wall
+//	elemIndex (int): Index of wall element to damage in tile
+//	strength (float): Strength of damage, where 0 is no damage and 1 is very damaged
+var breakWall = function(tile, elemIndex, strength)
+{
+	// Bail if no damage
+	if (strength <= 0)
+		return;
+	
+	// Both medium and major damage break walls
+	if (strength > DMG_MINOR)
+		tile.removeElement(elemIndex);
+}
+
+
 // Creates rubble at a given position
 //	pos (vec3 object): Position to create rubble at. Should be an object with keys "x", "y", and "z"
 //	affectRadius (number): Distance from pos to create rubble at
@@ -277,6 +721,20 @@ var createRubbleAt = function(pos, affectRadius)
 					case "footpath":
 						breakFootpath(tile, i, dmgStrength);
 						break;
+						
+					// Small scenery
+					case "small_scenery":
+						breakSmallScenery(tile, i, dmgStrength);
+						break;
+						
+					// Track
+					case "track":
+						breakTrack(tile, i, dmgStrength);
+						break;
+						
+					// Wall
+					case "wall":
+						breakWall(tile, i, dmgStrength);
 				}
 			}
 		}
@@ -289,49 +747,58 @@ var onTick = function(e, g)
 {
 	//var mem = context.sharedStorage;
 	
-	// Iterate over all previously handled car crashes
-	for (var i in handledCrashes)
+	
+	// Iterate over all known cars
+	for (var i in knownCars)
 	{
-		// Delete the entry in the array if the car no longer exists, or if it previously crashed and is no longer crashed
-		var car = map.getEntity(handledCrashes[i][0]);
-		if (car == null || (handledCrashes[i][1] && car.status != "crashed"))
-			delete handledCrashes[i];
+		// Delete the entry in the array if the car no longer exists
+		var car = map.getEntity(knownCars[i][0]);
+		if (car == null)
+			delete knownCars[i];
 	};
 	
 	// Iterate over all cars in the map
 	var cars = map.getAllEntities("car");
 	for (var i in cars)
 	{
-		// If the car is crashing and has NOT been handled yet, register it as crashing
-		// I really want to use Map here :(
+		// Get the car
 		var car = cars[i];
-		if (car.status == "crashing")
+		
+		// Declare variable for if the car is known to exist by this plugin or not
+		var bCarUnknown = true;
+		// For every known car...
+		for (var j in knownCars)
 		{
-			var bCarNotHandled = true;
-			for (var j in handledCrashes)
+			// ...If this car is the car we're currently using...
+			if (knownCars[j][0] == car.id)
 			{
-				if (handledCrashes[j][0] == car.id)
+				// ...Change boolean variable to shown this car is already known to exist
+				bCarUnknown = false;
+				
+				// If the car is crashed...
+				if (car.status == "crashed")
 				{
-					bCarNotHandled = false;
-					break;
+					// ...If the car isn't registered as crashed, register it as crashed and create rubble
+					if (!knownCars[j][1])
+					{
+						knownCars[j][1] = true;
+						createRubbleAt(toTileCoords(getEntPosAsVec3(car)), 3);
+					}
 				}
-			}
-			if (bCarNotHandled)
-				handledCrashes.push([car.id, false]);
-		}
-		// Else, if the car is crashed and has started being handled, register it as crashed and create rubble
-		else if (car.status == "crashed")
-		{
-			for (var j in handledCrashes)
-			{
-				if (handledCrashes[j][0] == car.id && handledCrashes[j][1] == false)
-				{
-					handledCrashes[j][1] = true;
-					createRubbleAt(toTileCoords(getEntPosAsVec3(car)), 3);
-					break;
-				}
+				// Else, if the car isn't crashed but is still registered as crashed,
+				//	then register it as not crashed
+				else if (knownCars[j][1])
+					knownCars[j][1] = false;
+				
+				// Short-circut out of the loop, since the car has been found
+				break;
 			}
 		}
+		
+		
+		// Register the car as known, if it's currently unknown
+		if (bCarUnknown)
+				knownCars.push([car.id, (car.status == "crashed")]);
 	}
 }
 
@@ -356,7 +823,7 @@ var main = function()
 		}
 		catch (e)
 		{
-			console.log("__MyTest.js ERROR: " + e);
+			console.log("CrashEffects.js ERROR: " + e);
 		}
 	}
 	else
@@ -366,7 +833,7 @@ var main = function()
 
 registerPlugin({
     name:		"Crash Effects",
-    version:	"1.0",
+    version:	"1.2",
     licence:	"https://github.com/andrewpratt64/openrct2-CrashEffects/blob/main/LICENSE.txt",
     authors:	["Andrew Pratt"],
     type:		"remote",
