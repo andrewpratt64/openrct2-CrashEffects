@@ -623,10 +623,9 @@ var breakTrack = function(tile, elemIndex, strength)
 	// Get track element
 	var elem = tile.getElement(elemIndex);
 	
-	// ReferenceError: identifier 'TRACK_TYPE_FLAT_RIDE' undefined
-	// // Don't delete parts of flat rides, it looks weird
-	// if (elem.trackType == TRACK_TYPE_FLAT_RIDE)
-	// 	return;
+	// Don't delete parts of flat rides, it looks weird
+	/*if (elem.trackType == TRACK_TYPE_FLAT_RIDE)
+		return;*/
 	
 	// Major damage destroys 1x1 track pieces
 	if (strength > DMG_MEDIUM && trackElemIs1x1(elem))
@@ -734,13 +733,10 @@ var createRubbleAt = function(pos, affectRadius)
 }
 
 
-// Called on crash
-// Note: vehicleCrashArgs.crashIntoType = "another_vehicle" | "land" | "water"
-var onCrash = function(vehicleCrashArgs)
+// Called on vehicle crash
+var onCrash = function(e)
 {
-	// Create rubble at the car's position
-	var nowCrashingCar = map.getEntity(vehicleCrashArgs.id);
-	createRubbleAt(toTileCoords(getEntPosAsVec3(nowCrashingCar)), 3);
+	createRubbleAt(toTileCoords(getEntPosAsVec3(map.getEntity(e.id))), 3);
 }
 
 
