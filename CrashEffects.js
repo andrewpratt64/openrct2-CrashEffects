@@ -319,15 +319,6 @@ const ETRACK_TYPES = {
 };
 
 
-// Collection of key-value pairs for vehicle cars known, and possibly handled by this plugin if crashed
-// Key is entity id
-// Value is boolean; true if vehicle has crashed and exploded, false otherwise
-// Implemented as an array of "pairs" (which are just arrays with two entries,
-//	where [0] is key and [1] is value) since ES5 dosen't support Map type :(
-var knownCars = [];
-
-
-
 // Displays a message to the user via an in-game "award"
 //	msg (string): Message to display
 var easyMsg = function(msg)
@@ -742,64 +733,13 @@ var createRubbleAt = function(pos, affectRadius)
 }
 
 
-// Called on every game tick
-var onTick = function(e, g)
+// Called on crash
+// Note: crashIntoType = "another_vehicle" | "land" | "water"
+var onCrash = function(id, crashIntoType)
 {
-	//var mem = context.sharedStorage;
-	
-	
-	// Iterate over all known cars
-	for (var i in knownCars)
-	{
-		// Delete the entry in the array if the car no longer exists
-		var car = map.getEntity(knownCars[i][0]);
-		if (car == null)
-			delete knownCars[i];
-	};
-	
-	// Iterate over all cars in the map
-	var cars = map.getAllEntities("car");
-	for (var i in cars)
-	{
-		// Get the car
-		var car = cars[i];
-		
-		// Declare variable for if the car is known to exist by this plugin or not
-		var bCarUnknown = true;
-		// For every known car...
-		for (var j in knownCars)
-		{
-			// ...If this car is the car we're currently using...
-			if (knownCars[j][0] == car.id)
-			{
-				// ...Change boolean variable to shown this car is already known to exist
-				bCarUnknown = false;
-				
-				// If the car is crashed...
-				if (car.status == "crashed")
-				{
-					// ...If the car isn't registered as crashed, register it as crashed and create rubble
-					if (!knownCars[j][1])
-					{
-						knownCars[j][1] = true;
-						createRubbleAt(toTileCoords(getEntPosAsVec3(car)), 3);
-					}
-				}
-				// Else, if the car isn't crashed but is still registered as crashed,
-				//	then register it as not crashed
-				else if (knownCars[j][1])
-					knownCars[j][1] = false;
-				
-				// Short-circut out of the loop, since the car has been found
-				break;
-			}
-		}
-		
-		
-		// Register the car as known, if it's currently unknown
-		if (bCarUnknown)
-				knownCars.push([car.id, (car.status == "crashed")]);
-	}
+	// Create rubble at the car's position
+	var nowCrashingCar = map.getEntity(id);
+	createRubbleAt(toTileCoords(getEntPosAsVec3(nowCrashingCar)), 3);
 }
 
 
@@ -807,7 +747,7 @@ var onTick = function(e, g)
 var init = function()
 {
 	// Context subscribe(s)
-	context.subscribe("interval.tick", onTick);
+	context.subscribe("vehicle.crash", onCrash);
 }
 
 
