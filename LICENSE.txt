@@ -1,0 +1,19 @@
+Andrew Pratt's openrct2-CrashEffects License
+
+Copyright (c) 2021 Andrew Pratt
+
+Author's github: andrewpratt64
+
+Permission is hereby granted, free of charge, to any person obtaining
+the files included within this repository (as in any files within the
+github repository, "openrct2-CrashEffects" by andrewpratt64), to use, copy, view, modify,
+decompile, and compile any of the files, subject to the following condition(s):
+
+Do not reupload any of the files, or any part of the files, without explicit permission
+from the author
+
+ALL FILES IN THIS REPOSITORY ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED. IN NO EVENT SHALL THE AUTHOR(S) OR COPYRIGHT HOLDER(S) BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE FILES OR THE
+USE OR OTHER DEALINGS IN THE FILES.
