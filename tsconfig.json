@@ -1,0 +1,11 @@
+{
+	"include": ["src/**/*"],
+	"compilerOptions": {
+		"removeComments": true,
+		"noEmitOnError": true,
+		"lib": ["es5"],
+		"target": "ES5",
+		"outFile": "./tmp/CrashEffects.js",
+		"pretty": false
+	}
+}

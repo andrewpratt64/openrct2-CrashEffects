@@ -1,0 +1,5 @@
+# CREATE A "local_user.cfg" FILE IN THE SAME DIRECTORY BEFORE BUILDING
+# Path to your OpenRCT2 installation
+OpenRCT2Path = C:/Users/JohnDoe/Documents/OpenRCT2
+# Filename to use when deploying the plugin to your local game
+DeployFilename = CrashEffects.js
