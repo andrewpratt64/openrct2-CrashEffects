@@ -1,3 +1,5 @@
 local_user.cfg
 tmp
 _ignore
+bin/
+lib/openrct2.d.ts
