@@ -10,6 +10,7 @@ A plugin for OpenRCT2 that adds enhanced destruction effects to your park
 - Footpath additions (benches, lamps, etc.) can be damaged and destroyed in explosions
 
 ### TODO
+- Improve efficiency; a lot of code can be inlined and/or undergo better static evaluation when compiled
 - Make peeps that aren't in a ride die if touching an explosion
 - Update the preview gif/thumbnail to show new features
 - Improve documentation for compiling
