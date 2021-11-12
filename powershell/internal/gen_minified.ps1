@@ -8,7 +8,7 @@ try
 	Set-Location ../src
 	$IPath = Join-Path -Path $StartLocation -ChildPath ../tmp/CrashEffects.js
 	$OPath = Join-Path -Path $StartLocation -ChildPath ../bin/CrashEffects.js
-	uglifyjs $IPath -b "beautify=false,preamble='/// Andrew Pratt 2021'" -o $OPath
+	uglifyjs $IPath -c -m --toplevel -b "beautify=false,preamble='/// Andrew Pratt 2021'" -o $OPath
 	
 }
 finally

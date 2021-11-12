@@ -3,7 +3,7 @@
 /**
  * Enum for surface styles of surface tile elements
  */
-enum ESurfaceStyles {
+const enum ESurfaceStyles {
 	GRASS = 0,
 	SAND = 1,
 	DIRT = 2,
