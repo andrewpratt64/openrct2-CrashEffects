@@ -29,7 +29,7 @@ namespace CrashEffects
 	
 	// Amount of time in milliseconds to wait after a vehicle crashes to post a message to the user.
 	// if another vehicle crashes before the delay has expired then the delay will reset.
-	//const OUT_OF_RIDE_CASUALTY_MSG_DELAY = 4250;
+	const OUT_OF_RIDE_CASUALTY_MSG_DELAY = 4250;
 	
 	
 	// The number of peeps that were killed by a ride crashing who were not actually on a ride who have yet to be
