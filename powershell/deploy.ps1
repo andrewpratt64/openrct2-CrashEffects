@@ -1,4 +1,4 @@
-# Andrew Pratt 2021
+# Andrew Pratt 2022
 # deploy: Copies CrashEffects.js from bin directory to user's OpenRCT2 installation
 
 $UserConfig = Get-Content -Path ../local_user.cfg | ConvertFrom-StringData

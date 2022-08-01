@@ -1,4 +1,4 @@
-# Andrew Pratt 2021
+# Andrew Pratt 2022
 # ensure_all_dirs_exist: Tests if needed directories exist, and creates them if they are missing
 
 New-Item -Path ../bin -ItemType Directory -Force

@@ -1,4 +1,4 @@
-# Andrew Pratt 2021
+# Andrew Pratt 2022
 # setup: Prepares (or re-prepares) the project to be built
 
 ./internal/ensure_all_dirs_exist.ps1

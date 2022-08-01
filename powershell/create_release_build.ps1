@@ -1,4 +1,4 @@
-# Andrew Pratt 2021
+# Andrew Pratt 2022
 # create_release_build: Creates a release-ready build of the plugin using the compiled plugin in the bin directory and the contents of the distribution directory
 
 ./internal/clean_tmp_release_files.ps1

@@ -1,4 +1,4 @@
-# Andrew Pratt 2021
+# Andrew Pratt 2022
 # populate_tmp_release: Populates the tmp/release directory with generated files and contents of the distribution directory
 
 New-Item -Path ../tmp/release -ItemType Directory -Force

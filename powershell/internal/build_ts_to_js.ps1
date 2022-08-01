@@ -1,4 +1,4 @@
-# Andrew Pratt 2021
+# Andrew Pratt 2022
 # build_ts_to_js: Compiles typescript in the src folder to tmp/CrashEffects.js
 
 $StartLocation = Get-Location

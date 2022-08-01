@@ -1,6 +1,6 @@
 Andrew Pratt's openrct2-CrashEffects License
 
-Copyright (c) 2021 Andrew Pratt
+Copyright (c) 2022 Andrew Pratt
 
 Author's github: andrewpratt64
 

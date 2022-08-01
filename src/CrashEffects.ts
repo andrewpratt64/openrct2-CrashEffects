@@ -1,4 +1,4 @@
-// Andrew Pratt 2021
+// Andrew Pratt 2022
 
 /// <reference path="../lib/openrct2.d.ts" />
 /// <reference path="./TrackElemType.ts" />
@@ -6,15 +6,49 @@
 
 
 namespace CrashEffects
-	{
+{
 	// The value of 2π
 	const PI2: number = Math.PI * 2;
+	
 	// Max value of strength for damage to be considered minor
 	const DMG_MINOR: number = 0.334;
 	// Max value of strength for damage to NOT be considered major
 	const DMG_MEDIUM: number = 0.667;
-
-
+	
+	// The amount to penalize the park rating for every peep that was killed by a ride crashing
+	// who was not actually on a ride. For reference, 25 points are penalized when a peep drowns
+	// and 200 points are penalized when a ride train crashes with one or more peeps inside of it
+	const OUT_OF_RIDE_CASUALTY_PENALTY: number = 150;
+	
+	// Each peep that was killed by a ride crashing who was not actually on a ride will penalize
+	// the park score so that to total casualty penalty does not exceed this number. For reference,
+	// a peep drowning will not raise the penalty higher than 1000 points and a ride train crashing
+	// with one or more peeps inside of it will only penalize if less than 500 points have already
+	// been penalized
+	const OUT_OF_RIDE_CASUALTY_MAX_TOTAL_PENALTY = 700;
+	
+	// Amount of time in milliseconds to wait after a vehicle crashes to post a message to the user.
+	// if another vehicle crashes before the delay has expired then the delay will reset.
+	//const OUT_OF_RIDE_CASUALTY_MSG_DELAY = 4250;
+	
+	
+	// The number of peeps that were killed by a ride crashing who were not actually on a ride who have yet to be
+	// reported in an out-of-ride casualty message
+	let casualtyCount: number = 0;
+	
+	// The name of the first peep who was killed by a ride crashing who was not actually on a ride and has yet to be reported
+	// in an out-of-ride casualty message or null if no casualties have occurred
+	let firstCasualtyName: null | string = null;
+	
+	// Handle to the timer handling the delay for the out-of-ride casualty message.
+	// Will be null if no delay is currently active
+	let outOfRideCasualtyMessageDelayHandle: null | number = null;
+	
+	// The time the delay for the out-of-ride casualty message last (re)started. Will become null after the
+	// delay expires
+	let outOfRideCasualtyMessageDelayStartTime: null | number = null;
+	
+	
 	/**
 	 * Subtract two 3-component vectors
 	 * @param minuend Value to subtract from
@@ -73,6 +107,22 @@ namespace CrashEffects
 
 
 	/**
+	 * Kills a peep
+	 * @param peep The peep to kill
+	 */
+	function killPeep(peep: (Guest | Staff))
+	{
+		// TODO: Test if peep is on ride
+		try
+		{
+			// Remove the peep entity
+			peep.remove();
+		}
+		catch (err)
+		{}
+	}
+
+	/**
 	 * Convert a non-tile coordinate to a tile coordinate
 	 * @param v Value of coordinate to convert
 	 * @return Tile coordinate
@@ -86,6 +136,20 @@ namespace CrashEffects
 			x: v.x * 0.03125,
 			y: v.y * 0.03125,
 			z: v.z * 0.03125
+		};
+	}
+	
+	/**
+	 * Convert a tile coordinate to a non-tile coordinate
+	 * @param v Value of tile coordinate to convert
+	 * @return Non-tile coordinate
+	 */
+	function asNonTileCoord(v: CoordsXYZ): CoordsXYZ
+	{
+		return {
+			x: v.x * 32,
+			y: v.y * 32,
+			z: v.z * 32
 		};
 	}
 
@@ -212,6 +276,228 @@ namespace CrashEffects
 		
 		// If sequence is zero, return a value based on the track's numerical type
 		return trackTypeIs1x1(elem.trackType);
+	}
+	
+	
+	
+	
+	
+	/**
+	 * Loads from the park file the remaining amount of time until a message is posted to the user informing them of out-of-ride casualties
+	 * @return Remaining delay in milliseconds. Will be null if no delay was active when the park was last saved
+	 */
+	function loadOutOfRideCasualtyMessageRemainingDelay(): null | number
+	{
+		return context.getParkStorage().get<null | number>("CasualtyMsgDelay", null);
+	}
+	
+	/**
+	 * Saves to the park file the amount of time until a message is posted to the user informing them of out-of-ride casualties
+	 * @param delay Remaining delay in milliseconds, or null if no delay is currently active
+	 */
+	function saveOutOfRideCasualtyMessageRemainingDelay(delay: null | number): void
+	{
+		context.getParkStorage().set<null | number>("CasualtyMsgDelay", delay);
+	}
+	
+	
+	/**
+	 * Loads from the park file the number of peeps that were killed by a ride crashing who were not actually on a ride who have yet to be
+	 * reported in an out-of-ride casualty message
+	 * @return Number of killed peeps
+	 */
+	function loadCasualtyCount(): number
+	{
+		return context.getParkStorage().get<number>("CasualtyCount", 0);
+	}
+	
+	/**
+	 * Saves to the park file the number of currently registered peeps that were killed by a ride crashing who were not actually on a ride
+	 * who have yet to be reported in an out-of-ride casualty message
+	 * @casualtyCount Number of killed peeps
+	 */
+	function saveCasualtyCount(casualtyCount: number): void
+	{
+		context.getParkStorage().set<number>("CasualtyCount", casualtyCount);
+	}
+	
+	
+	/**
+	 * Loads from the park file the name of the first peep who was killed by a ride crashing who was not actually on a ride and has yet to be reported
+	 * in an out-of-ride casualty message
+	 * @return The name of the peep. Will return null if no casualties have occurred
+	 */
+	function loadFirstCasualtyName(): null | string
+	{
+		return context.getParkStorage().get<null | string>("FirstCasualtyName", null);
+	}
+	
+	/**
+	 * Saves to the park file the name of the first peep who was killed by a ride crashing who was not actually on a ride and has yet to be reported
+	 * in an out-of-ride casualty message
+	 * @param name The name of the peep or null if no casualties have occurred
+	 */
+	function saveFirstCasualtyName(name: null | string): void
+	{
+		context.getParkStorage().set<null | string>("FirstCasualtyName", name);
+	}
+	
+	
+	/**
+	 * Calculates the remaining amount of time until a message is posted to the user informing them of out-of-ride casualties
+	 * @return Remaining delay in milliseconds. Will be null if no delay is active
+	 */
+	function getOutOfRideCasualtyMessageRemainingDelay(): null | number
+	{
+		// Return null if the delay isn't active
+		if (outOfRideCasualtyMessageDelayStartTime == null)
+			return null;
+		
+		// Else, return the difference between now and the time the delay started
+		return Date.now() - outOfRideCasualtyMessageDelayStartTime;
+	}
+	
+	
+	/**
+	 * Displays a message to the user informing them of peeps who were killed by
+	 * a ride crashing who were not actually on a ride
+	 */
+	function displayOutOfRideCasualtyCountMessage()
+	{
+		// If only one peep was killed...
+		if (casualtyCount == 1)
+		{			
+			// If the name of the peep that died is unknown, then display a message indicating one peep died
+			if (firstCasualtyName == null)
+			{
+				park.postMessage({
+					type: "blank",
+					text: "1 person was indirectly killed in a ride accident"
+				});
+			}
+			// Else display a message with the name of the peep
+			else
+			{
+				park.postMessage({
+					type: "blank",
+					text: firstCasualtyName + " was indirectly killed in a ride accident"
+				});
+			}
+		}
+		// Else if two or more peeps were killed, then display a message with the number of casualties
+		else if (casualtyCount > 1)
+		{
+			park.postMessage({
+				type: "blank",
+				text: casualtyCount + " people were indirectly killed in a ride accident"
+			});
+		}
+	}
+	
+	
+	/**
+	 * Event handler that's called when the out-of-ride casualty message delay expires
+	 */
+	function onOutOfRideCasualtyMessageDelayExpired()
+	{
+		// Stop handling the delay
+		stopOutOfRideCasualtyMessageDelay();
+		
+		// Display the out-of-ride casualty message
+		displayOutOfRideCasualtyCountMessage();
+		
+		// Unset the first casualty name
+		firstCasualtyName = null;
+		
+		// Set the casualty count to zero
+		casualtyCount = 0;
+		
+		// unset the delay start time
+		outOfRideCasualtyMessageDelayStartTime = null;
+	}
+	
+	
+	/**
+	 * After a delay, posts a message to the user informing them of out-of-ride casualties
+	 * @param The delay duration in milliseconds
+	 * @warning If the delay is already counting down, this will create a second timer and the reference to the original will be lost
+	 */
+	function forceStartOutOfRideCasualtyMessageDelay(delay: number)
+	{
+		// Remember the time the delay started
+		outOfRideCasualtyMessageDelayStartTime = Date.now();
+		
+		// Start invoking a callback function to update the delay value
+		outOfRideCasualtyMessageDelayHandle = context.setTimeout(onOutOfRideCasualtyMessageDelayExpired, delay);
+	}
+	
+	/**
+	 * After a delay, posts a message to the user informing them of out-of-ride casualties
+	 * @param The delay duration in milliseconds
+	 */
+	function startOutOfRideCasualtyMessageDelay(delay: number)
+	{
+		// Start invoking a callback function to update the delay value, if this isn't already being done
+		if (outOfRideCasualtyMessageDelayHandle == null)
+			forceStartOutOfRideCasualtyMessageDelay(delay);
+	}
+	
+	/**
+	 * Stops the delay for the out-of-ride casualty message if it's currently active
+	 */
+	function stopOutOfRideCasualtyMessageDelay()
+	{
+		// Stop invoking the delay's callback function, unless it already isn't being invoked
+		if (outOfRideCasualtyMessageDelayHandle != null)
+			context.clearInterval(outOfRideCasualtyMessageDelayHandle);
+	}
+	
+	/**
+	 * After a delay, posts a message to the user informing them of out-of-ride casualties
+	 * @param The delay duration in milliseconds
+	 * @remarks If the delay has already started, the delay will restart.
+	 */
+	function restartOutOfRideCasualtyMessageDelay(delay: number)
+	{
+		// Cancel the current countdown if one already exists
+		stopOutOfRideCasualtyMessageDelay();
+		
+		// Start the delay
+		forceStartOutOfRideCasualtyMessageDelay(delay);
+	}
+	
+	/**
+	 * Resumes the delay for the out-of-ride casualty message if it was previously started
+	 */
+	function resumeOutOfRideCasualtyMessageDelayIfNeeded()
+	{
+		// Load the remaining delay
+		let timeLeft: null | number = loadOutOfRideCasualtyMessageRemainingDelay();
+		
+		// If there is still time left...
+		if (timeLeft != null)
+		{
+			// ...set the stored start time of the delay relative to the remaining time left
+			outOfRideCasualtyMessageDelayStartTime = Date.now() - timeLeft;
+			
+			// Resume the delay
+			startOutOfRideCasualtyMessageDelay(timeLeft);
+		}
+	}
+	
+	
+	/**
+	 * Registers peeps that were killed by a ride crashing who were not actually on a ride
+	 * @param newCasualtyCount The number of peeps that were killed
+	 */
+	function registerNewOutOfRideCasualties(newCasualtyCount: number): void
+	{
+		
+		// Add to the registered casualty count
+		casualtyCount += newCasualtyCount;
+		
+		// Start or restart the out-of-ride casualty message delay
+		restartOutOfRideCasualtyMessageDelay(OUT_OF_RIDE_CASUALTY_MSG_DELAY);
 	}
 
 
@@ -504,14 +790,66 @@ namespace CrashEffects
 			createRubbleAtTileElem(i, tile, tilePos, rubbleCenter, affectRadius);
 		}
 	}
+	
+	
+	/**
+	 * Kills peeps within a given set of peeps, where a crashing ride is the cause of death
+	 * @param peeps List of peeps to potentially kill
+	 * @param crashPos Origin of the crash
+	 * @param killRadius Maximum distance from pos to kill peeps
+	 */
+	function killPeepsFromCrash(peeps: (Guest | Staff)[], crashPos: CoordsXYZ, killRadius: number): void
+	{
+		// Define a variable to count how many peeps were killed
+		let newCasualtyCount: number = 0;
+		
+		// Iterate over every peep
+		for (let i: number = 0; i < peeps.length; ++i)
+		{
+			// For every peep that's close enough to the origin of the crash...
+			if (vec3Dist(asTileCoord(getEntPos(peeps[i])), crashPos) <= killRadius)
+			{
+				// Remember the peep's name, if this is the first casualty
+				if (firstCasualtyName == undefined)
+					firstCasualtyName = peeps[i].name;
+				
+				// Kill the peep
+				killPeep(peeps[i]);
+				// Increase the park casualty penalty
+				park.casualtyPenalty = Math.min(park.casualtyPenalty + OUT_OF_RIDE_CASUALTY_PENALTY, OUT_OF_RIDE_CASUALTY_MAX_TOTAL_PENALTY);
+				// Increment the casualty counter
+				++newCasualtyCount;
+			}
+		}
+		
+		// Register the new casualties, if any
+		registerNewOutOfRideCasualties(newCasualtyCount);
+	}
+	
+	
+	/**
+	 * Kills peeps on a given tile, where a crashing ride is the cause of death
+	 * @param tilePos Position of the tile to kill peeps on
+	 * @param crashPos Origin of the crash
+	 * @param killRadius Maximum distance from pos to kill peeps
+	 */
+	function killPeepsOnTileFromCrash(tilePos: CoordsXY, crashPos: CoordsXYZ, killRadius: number): void
+	{
+		// Kill guests on the tile
+		killPeepsFromCrash(map.getAllEntitiesOnTile("guest", tilePos), crashPos, killRadius);
+		
+		// Kill staff members on the tile
+		killPeepsFromCrash(map.getAllEntitiesOnTile("staff", tilePos), crashPos, killRadius);
+	}
 
 
 	/**
-	 * Creates rubble at a given position
-	 * @param pos Position to create rubble at
-	 * @param affectRadius Maximum distance from pos to create rubble
+	 * Creates crash effects at a given position
+	 * @param pos Origin of the crash
+	 * @param affectRadius Maximum distance from pos to affect
+	 * @param killRadius Maximum distance from pos to kill peeps
 	 */
-	function createRubbleAt(pos: CoordsXYZ, affectRadius: number): void
+	function crashEffectsAt(pos: CoordsXYZ, affectRadius: number, killRadius: number): void
 	{
 		// Iterate over scalar values of radius in the range [0, affectRadius)
 		for (let r = 0; r < affectRadius; ++r)
@@ -528,22 +866,46 @@ namespace CrashEffects
 				//	The position is the point theta radians along the side of a circle that's centered at pos with a radius of r
 				let tilePos = offsetBy2DPolar(pos, r, theta);
 				
-				// Create rubble at this tile, as long as it's inside the map
+				// If the tile is inside the map...
 				if (isTilePosInsideMap(tilePos))
+				{// Get tilePos as a CoordsXY object
+					// ...Create rubble at this tile
 					createRubbleAtTile(tilePos, pos, affectRadius);
+					// Kill peeps on this tile
+					killPeepsOnTileFromCrash({x: Math.trunc(tilePos.x * 32), y: Math.trunc(tilePos.y * 32)}, pos, killRadius);
+				}
+				
+				
 			}
 		}
 	}
 
 
 	/**
-	 * Called on vehicle crash
+	 * Callback for when the game is saved
+	 */
+	function onMapSave(): void
+	{
+		// Save data for this plugin
+		saveOutOfRideCasualtyMessageRemainingDelay(getOutOfRideCasualtyMessageRemainingDelay());
+		saveCasualtyCount(casualtyCount);
+		saveFirstCasualtyName(firstCasualtyName);
+	}
+	
+	
+	/**
+	 * Callback for when a vehicle crashes
 	 * @param e Event args
 	 */
 	function onCrash(e: VehicleCrashArgs): void
 	{
-		// Create rubble at the crash
-		createRubbleAt(asTileCoord(getEntPos(map.getEntity(e.id))), 3);
+		// Radius of explosion damage
+		const affectRadius = 3;
+		// Max radius that kills peeps
+		const killRadius = 2;
+		
+		// Create crash effects at the crash
+		crashEffectsAt(asTileCoord(getEntPos(map.getEntity(e.id))), affectRadius, killRadius);
 	}
 
 
@@ -552,7 +914,16 @@ namespace CrashEffects
 	 */
 	function init(): void
 	{
-		// Context subscribe(s)
+		// Load saved data
+		// (loadOutOfRideCasualtyMessageRemainingDelay() is called within resumeOutOfRideCasualtyMessageDelayIfNeeded())
+		casualtyCount = loadCasualtyCount();
+		firstCasualtyName = loadFirstCasualtyName();
+		
+		// Resume the out-of-ride message delay if it was previously running
+		resumeOutOfRideCasualtyMessageDelayIfNeeded();
+		
+		// Subscribe to game hook(s)
+		context.subscribe("map.save", onMapSave);
 		context.subscribe("vehicle.crash", onCrash);
 	}
 
